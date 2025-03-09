@@ -11,10 +11,30 @@ import {
 import { doc, getDoc } from 'firebase/firestore';
 import React, { useContext, useState, useEffect } from 'react';
 
-const AuthContext = React.createContext();
+interface AuthContextType {
+  currentUser: User | null;
+  userDataObj: any;
+  setUserDataObj: React.Dispatch<React.SetStateAction<any>>;
+  signup: (email: string, password: string) => Promise<any>;
+  login: (email: string, password: string) => Promise<any>;
+  logout: () => Promise<void>;
+  loading: boolean;
+}
 
-export function useAuth() {
-  return useContext(AuthContext);
+type UserData = {
+  name?: string;
+  email?: string;
+  role?: string;
+};
+
+const AuthContext = React.createContext<AuthContextType | undefined>(undefined);
+
+export function useAuth(): AuthContextType {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
 }
 
 export function AuthProvider({
@@ -23,7 +43,7 @@ export function AuthProvider({
   children: React.ReactNode;
 }>) {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [userDataObj, setUserDataObj] = useState(null);
+  const [userDataObj, setUserDataObj] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
 
   //AUTH HANDLERS

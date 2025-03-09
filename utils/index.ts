@@ -6,7 +6,9 @@ export const gradients = {
     pink: ['#ffd8f2', '#ffb1ea', '#ff8aea', '#ff6df1', '#ff3dfe', '#cd2ddb', '#9d1fb7', '#731493', '#540b7a',],
 }
 
-export const baseRating = {
+
+
+export const baseRating:Record<string, number> = {
     "0": 2, "1": 5, "2": 4, "3": 1, "4": 3,
     "5": 2, "6": 4, "7": 1, "8": 5, "9": 3,
     "10": 2, "11": 4, "12": 1, "13": 3, "14": 5,

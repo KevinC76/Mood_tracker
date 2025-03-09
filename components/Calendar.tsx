@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { gradients, baseRating, demoData } from '@/utils/index';
+import { gradients, baseRating } from '@/utils/index';
 import { Fugaz_One } from 'next/font/google';
 
 const fugaz = Fugaz_One({
@@ -25,7 +25,7 @@ const months = {
   December: 'Dec',
 };
 const monthsArr = Object.keys(months);
-const now = new Date();
+
 const dayList = [
   'Sunday',
   'Monday',
@@ -36,12 +36,17 @@ const dayList = [
   'Saturday',
 ];
 
-export default function Calendar(props) {
+interface calendarProps {
+  demo?: boolean;
+  completeData?: Record<number, Record<number, Record<number, number>>>;
+}
+
+export default function Calendar(props: calendarProps) {
   const now = new Date();
   const currMonth = now.getMonth();
   const [selectedMonth, setSelectedMonth] = useState(monthsArr[currMonth]);
   const [selectedYear, setSelectedYear] = useState(now.getFullYear());
-  const { demo, completeData, handleSetMood } = props;
+  const { demo, completeData } = props;
 
   const numericMonth = monthsArr.indexOf(selectedMonth);
   const data = completeData?.[selectedYear]?.[numericMonth] || {};
@@ -117,7 +122,7 @@ export default function Calendar(props) {
                 }
 
                 const color = demo
-                  ? gradients.indigo[baseRating[dayIndex]]
+                  ? gradients.indigo[baseRating[String(dayIndex)]] // Convert number to string
                   : dayIndex in data
                   ? gradients.indigo[data[dayIndex]]
                   : 'white';

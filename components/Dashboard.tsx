@@ -1,10 +1,10 @@
 'use client';
 
-import { Days_One, Fugaz_One } from 'next/font/google';
+import { Fugaz_One } from 'next/font/google';
 import React, { useEffect, useState } from 'react';
 import Calendar from './Calendar';
 import { useAuth } from '@/context/AuthContext';
-import { average, doc, setDoc } from 'firebase/firestore';
+import { doc, setDoc } from 'firebase/firestore';
 import { db } from '@/firebase';
 import Login from './Login';
 import Loading from './Loading';
@@ -15,18 +15,26 @@ const fugaz = Fugaz_One({
   weight: '400',
 });
 
+type MoodData = {
+  [year: number]: {
+    [month: number]: {
+      [day: number]: number; // Mood score (e.g., 1-5)
+    };
+  };
+};
+
 export default function Dashboard() {
   const now = new Date();
   const { currentUser, userDataObj, setUserDataObj, loading } = useAuth();
   const [data, setData] = useState({});
 
-  function countValues() {
+  function countValues(data: MoodData) {
     let total_number_of_days = 0;
     let sum_moods = 0;
     for (const year in data) {
       for (const month in data[year]) {
         for (const day in data[year][month]) {
-          let days_mood = data[year][month][day];
+          const days_mood = data[year][month][day];
           total_number_of_days++;
           sum_moods += days_mood;
         }
@@ -40,7 +48,7 @@ export default function Dashboard() {
   }
 
   const statuses = {
-    ...countValues(),
+    ...countValues(data),
     time_remaining: `${24 - now.getHours()}H ${60 - now.getMinutes()}M`,
   };
 
@@ -50,28 +58,36 @@ export default function Dashboard() {
     const year = now.getFullYear();
 
     try {
-      // Copy existing data to prevent mutation
       const newData = { ...userDataObj };
+      if (!newData?.[year]) {
+        newData[year] = {};
+      }
+      if (!newData?.[year]?.[month]) {
+        newData[year][month] = {};
+      }
 
-      // Ensure nested structure exists
-      if (!newData[year]) newData[year] = {};
-      if (!newData[year][month]) newData[year][month] = {};
-
-      // Set the mood
       newData[year][month][day] = mood;
-
-      // Update local state
+      // update the current state
       setData(newData);
+      // update the global state
       setUserDataObj(newData);
-
-      // Update Firestore (fix overwriting issue)
-      await setDoc(
-        doc(db, 'users', currentUser.uid),
-        { [`${year}.${month}.${day}`]: mood }, // Use dot notation for deep merge
+      // update firebase
+      const docRef = doc(db, 'users', currentUser!.uid);
+      const res = await setDoc(
+        docRef,
+        {
+          [year]: {
+            [month]: {
+              [day]: mood,
+            },
+          },
+        },
         { merge: true }
       );
+
+      return res;
     } catch (error) {
-      console.error('Failed to set data:', error);
+      console.log('Failed to set data: ', error);
     }
   }
 
@@ -148,7 +164,7 @@ export default function Dashboard() {
           }
         )}
       </div>
-      <Calendar completeData={data} handleSetMood={handleSetMood} />
+      <Calendar completeData={data} />
     </div>
   );
 }
