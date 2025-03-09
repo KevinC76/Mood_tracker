@@ -11,13 +11,15 @@ type ButtonProps = {
   text: string;
   dark: boolean;
   full: boolean;
+  clickHandler?: () => void;
 };
 
 export default function Button(props: ButtonProps) {
-  const { text, dark, full } = props;
+  const { text, dark, full, clickHandler } = props;
 
   return (
     <button
+    onClick={clickHandler}
       className={`border-solid border-indigo-600 rounded-full overflow-hidden border-2 duration-200 hover:opacity-60 ${
         dark ? 'text-white bg-indigo-600 ' : 'text-indigo-600'
       } ${full ? 'grid place-items-center w-full' : ''}`}
